@@ -11,7 +11,7 @@ let scanning = true;
 codeReader
     .listVideoInputDevices()
     .then(videoInputDevices => {
-        const firstDeviceId = videoInputDevices[1]?.deviceId;
+        const firstDeviceId = videoInputDevices[0]?.deviceId;
         if (firstDeviceId) {
             startScanner(firstDeviceId);
         } else {
