@@ -8,20 +8,42 @@ const loadingDiv = document.getElementById('loading');
 
 let scanning = true;
 
-codeReader
-    .listVideoInputDevices()
-    .then(videoInputDevices => {
-        const firstDeviceId = videoInputDevices[0]?.deviceId;
-        if (firstDeviceId) {
-            startScanner(firstDeviceId);
-        } else {
-            isbnDisplay.textContent = 'No camera found';
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        isbnDisplay.textContent = 'Error accessing camera';
-    });
+// First: request camera permission and list devices
+function requestCameraPermission() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        isbnDisplay.textContent = 'Camera not supported on this device/browser.';
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            // Stop the stream immediately after permission check
+            stream.getTracks().forEach(track => track.stop());
+            // Now list devices and start scanner
+            listVideoDevices();
+        })
+        .catch(err => {
+            console.error('Camera permission denied or unavailable:', err);
+            isbnDisplay.textContent = 'Camera permission denied.';
+        });
+}
+
+function listVideoDevices() {
+    codeReader
+        .listVideoInputDevices()
+        .then(videoInputDevices => {
+            const firstDeviceId = videoInputDevices[0]?.deviceId;
+            if (firstDeviceId) {
+                startScanner(firstDeviceId);
+            } else {
+                isbnDisplay.textContent = 'Camera not found';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            isbnDisplay.textContent = 'Error accessing camera';
+        });
+}
 
 // Start the scanner
 function startScanner(deviceId) {
@@ -51,7 +73,7 @@ function hideLoading() {
 
 // Fetch book details by ISBN
 function getBookTitle(isbn) {
-    showLoading();  // Show loader when fetching book info
+    showLoading();
 
     const url = `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`;
 
@@ -65,11 +87,11 @@ function getBookTitle(isbn) {
                 const title = book.title;
                 const subtitle = book.subtitle ? `: ${book.subtitle}` : '';
                 const fullTitle = title + subtitle;
-                listBook(fullTitle);  // Fetch book details from Libgen
+                listBook(fullTitle);
             } else {
                 bookDetailsDiv.innerHTML = `<p>No details found for ISBN: ${isbn}</p>`;
-                resultsDiv.style.display = 'block';  // Show results popup
-                hideLoading();  // Hide loader if no book found
+                resultsDiv.style.display = 'block';
+                hideLoading();
             }
         })
         .catch(error => {
@@ -102,23 +124,26 @@ function listBook(query) {
             }
 
             bookDetailsDiv.innerHTML = output || '<p>No matching books found on Libgen.</p>';
-            resultsDiv.style.display = 'block';  // Show results
-            hideLoading();  // Hide loader when results are ready
+            resultsDiv.style.display = 'block';
+            hideLoading();
         });
 }
 
 // Scan Again button handler
 scanAgainBtn.addEventListener('click', () => {
-    resultsDiv.style.display = 'none';  // Hide results popup
-    isbnDisplay.textContent = 'Waiting for scan...';  // Reset display
-    scanning = true;  // Resume scanning
+    resultsDiv.style.display = 'none';
+    isbnDisplay.textContent = 'Waiting for scan...';
+    scanning = true;
 
     codeReader
         .listVideoInputDevices()
         .then(videoInputDevices => {
             const firstDeviceId = videoInputDevices[0]?.deviceId;
             if (firstDeviceId) {
-                startScanner(firstDeviceId);  // Restart scanner
+                startScanner(firstDeviceId);
             }
         });
 });
+
+// Call this on page load
+requestCameraPermission();
