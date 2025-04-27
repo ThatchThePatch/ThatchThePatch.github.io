@@ -15,16 +15,18 @@ function requestCameraPermission() {
         return;
     }
 
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
         .then(stream => {
-            // Stop the stream immediately after permission check
+            const track = stream.getVideoTracks()[0];
+            const backCamDeviceId = track.getSettings().deviceId;
+            // Stop test stream
             stream.getTracks().forEach(track => track.stop());
-            // Now list devices and start scanner
-            listVideoDevices();
+
+            startScanner(backCamDeviceId);  // start ZXing with this deviceId
         })
-        .catch(err => {
-            console.error('Camera permission denied or unavailable:', err);
-            isbnDisplay.textContent = 'Camera permission denied.';
+        .catch(error => {
+            console.error("Back camera not available, falling back to default.");
+            listVideoDevices(); // fallback to regular flow
         });
 }
 
@@ -36,7 +38,7 @@ function listVideoDevices() {
             if (firstDeviceId) {
                 startScanner(firstDeviceId);
             } else {
-                isbnDisplay.textContent = 'Camera not found';
+                isbnDisplay.textContent = 'No camera found';
             }
         })
         .catch(err => {
