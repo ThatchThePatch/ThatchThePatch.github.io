@@ -7,6 +7,7 @@ const scanAgainBtn = document.getElementById('scan-again-btn');
 const loadingDiv = document.getElementById('loading');
 
 let scanning = true;
+let backCamDeviceId = null;  // <- new global variable to remember the back camera
 
 // First: request camera permission and list devices
 function requestCameraPermission() {
@@ -18,15 +19,14 @@ function requestCameraPermission() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
         .then(stream => {
             const track = stream.getVideoTracks()[0];
-            const backCamDeviceId = track.getSettings().deviceId;
-            // Stop test stream
+            backCamDeviceId = track.getSettings().deviceId;  // <- save deviceId
             stream.getTracks().forEach(track => track.stop());
 
-            startScanner(backCamDeviceId);  // start ZXing with this deviceId
+            startScanner(backCamDeviceId);  // start ZXing with back camera
         })
         .catch(error => {
             console.error("Back camera not available, falling back to default.");
-            listVideoDevices(); // fallback to regular flow
+            listVideoDevices();
         });
 }
 
@@ -36,6 +36,7 @@ function listVideoDevices() {
         .then(videoInputDevices => {
             const firstDeviceId = videoInputDevices[0]?.deviceId;
             if (firstDeviceId) {
+                backCamDeviceId = firstDeviceId;  // <- fallback: remember first available device
                 startScanner(firstDeviceId);
             } else {
                 isbnDisplay.textContent = 'No camera found';
@@ -55,7 +56,7 @@ function startScanner(deviceId) {
             const isbn = result.getText();
             isbnDisplay.textContent = `ISBN: ${isbn}`;
             getBookTitle(isbn);
-            codeReader.reset();  // Stop scanning
+            codeReader.reset();  // stop scanning
         }
         if (err && !(err instanceof ZXing.NotFoundException)) {
             console.error(err);
@@ -137,19 +138,17 @@ scanAgainBtn.addEventListener('click', () => {
     isbnDisplay.textContent = 'Waiting for scan...';
     scanning = true;
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
-        .then(stream => {
-            const track = stream.getVideoTracks()[0];
-            const backCamDeviceId = track.getSettings().deviceId;
-            // Stop test stream
-            stream.getTracks().forEach(track => track.stop());
-
-            startScanner(backCamDeviceId);  // start ZXing with this deviceId
-        })
-        .catch(error => {
-            console.error("Back camera not available, falling back to default.");
-            listVideoDevices(); // fallback to regular flow
-        });
+    if (backCamDeviceId) {
+        startScanner(backCamDeviceId);  // <- use remembered back camera
+    } else {
+        codeReader.listVideoInputDevices()
+            .then(videoInputDevices => {
+                const firstDeviceId = videoInputDevices[0]?.deviceId;
+                if (firstDeviceId) {
+                    startScanner(firstDeviceId);
+                }
+            });
+    }
 });
 
 // Call this on page load
