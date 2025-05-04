@@ -7,9 +7,9 @@ const scanAgainBtn = document.getElementById('scan-again-btn');
 const loadingDiv = document.getElementById('loading');
 
 let scanning = true;
-let backCamDeviceId = null;  // <- new global variable to remember the back camera
+let backCamDeviceId = null;  // Global variable to remember the back camera
 
-// First: request camera permission and list devices
+// Request camera permission and start scanning
 function requestCameraPermission() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         isbnDisplay.textContent = 'Camera not supported on this device/browser.';
@@ -19,10 +19,10 @@ function requestCameraPermission() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
         .then(stream => {
             const track = stream.getVideoTracks()[0];
-            backCamDeviceId = track.getSettings().deviceId;  // <- save deviceId
+            backCamDeviceId = track.getSettings().deviceId;
             stream.getTracks().forEach(track => track.stop());
 
-            startScanner(backCamDeviceId);  // start ZXing with back camera
+            startScanner(backCamDeviceId);
         })
         .catch(error => {
             console.error("Back camera not available, falling back to default.");
@@ -30,13 +30,14 @@ function requestCameraPermission() {
         });
 }
 
+// List available video devices and start scanning with the first one
 function listVideoDevices() {
     codeReader
         .listVideoInputDevices()
         .then(videoInputDevices => {
             const firstDeviceId = videoInputDevices[0]?.deviceId;
             if (firstDeviceId) {
-                backCamDeviceId = firstDeviceId;  // <- fallback: remember first available device
+                backCamDeviceId = firstDeviceId;
                 startScanner(firstDeviceId);
             } else {
                 isbnDisplay.textContent = 'No camera found';
@@ -48,7 +49,7 @@ function listVideoDevices() {
         });
 }
 
-// Start the scanner
+// Start the scanner on a given deviceId
 function startScanner(deviceId) {
     codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, err) => {
         if (result && scanning) {
@@ -64,17 +65,17 @@ function startScanner(deviceId) {
     });
 }
 
-// Show the loading indicator
+// Show loading spinner
 function showLoading() {
     loadingDiv.style.display = 'block';
 }
 
-// Hide the loading indicator
+// Hide loading spinner
 function hideLoading() {
     loadingDiv.style.display = 'none';
 }
 
-// Fetch book details by ISBN
+// Fetch book details by ISBN from OpenLibrary API
 function getBookTitle(isbn) {
     showLoading();
 
@@ -103,7 +104,7 @@ function getBookTitle(isbn) {
         });
 }
 
-// Fetch book info from Libgen
+// Fetch book info from Libgen via AllOrigins
 function listBook(query) {
     fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(`https://libgen.rs/search.php?req=${query.replace(/ /g, "+")}`))
         .then(response => response.json())
@@ -132,24 +133,33 @@ function listBook(query) {
         });
 }
 
-// Scan Again button handler
-scanAgainBtn.addEventListener('click', () => {
+// Scan Again function — to restart scanning
+function scanAgain() {
     resultsDiv.style.display = 'none';
     isbnDisplay.textContent = 'Waiting for scan...';
     scanning = true;
 
     if (backCamDeviceId) {
-        startScanner(backCamDeviceId);  // <- use remembered back camera
+        startScanner(backCamDeviceId);
     } else {
         codeReader.listVideoInputDevices()
             .then(videoInputDevices => {
                 const firstDeviceId = videoInputDevices[0]?.deviceId;
                 if (firstDeviceId) {
                     startScanner(firstDeviceId);
+                } else {
+                    isbnDisplay.textContent = 'No camera available';
                 }
+            })
+            .catch(err => {
+                console.error('Error listing video devices:', err);
+                isbnDisplay.textContent = 'Error accessing camera';
             });
     }
-});
+}
 
-// Call this on page load
+// Attach Scan Again button event listener
+scanAgainBtn.addEventListener('click', scanAgain);
+
+// Initialize on page load
 requestCameraPermission();
