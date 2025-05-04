@@ -137,13 +137,18 @@ scanAgainBtn.addEventListener('click', () => {
     isbnDisplay.textContent = 'Waiting for scan...';
     scanning = true;
 
-    codeReader
-        .listVideoInputDevices()
-        .then(videoInputDevices => {
-            const firstDeviceId = videoInputDevices[0]?.deviceId;
-            if (firstDeviceId) {
-                startScanner(backCamDeviceId);
-            }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+        .then(stream => {
+            const track = stream.getVideoTracks()[0];
+            const backCamDeviceId = track.getSettings().deviceId;
+            // Stop test stream
+            stream.getTracks().forEach(track => track.stop());
+
+            startScanner(backCamDeviceId);  // start ZXing with this deviceId
+        })
+        .catch(error => {
+            console.error("Back camera not available, falling back to default.");
+            listVideoDevices(); // fallback to regular flow
         });
 });
 
