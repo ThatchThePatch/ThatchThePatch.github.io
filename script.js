@@ -142,7 +142,7 @@ scanAgainBtn.addEventListener('click', () => {
         .then(videoInputDevices => {
             const firstDeviceId = videoInputDevices[0]?.deviceId;
             if (firstDeviceId) {
-                startScanner(firstDeviceId);
+                startScanner(backCamDeviceId);
             }
         });
 });
