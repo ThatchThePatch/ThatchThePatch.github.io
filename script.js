@@ -11,6 +11,9 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+
+
+
 function renderProjects() {
   const list = document.getElementById('project-list');
   if (!list) return;
@@ -59,14 +62,14 @@ function setupMobileNav() {
   const closeMenu = () => {
     toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-label', 'Open menu');
-    menu.hidden = true;
+    menu.classList.remove('is-open'); // ← swap
     document.body.style.overflow = '';
   };
 
   const openMenu = () => {
     toggle.setAttribute('aria-expanded', 'true');
     toggle.setAttribute('aria-label', 'Close menu');
-    menu.hidden = false;
+    menu.classList.add('is-open'); // ← swap
     document.body.style.overflow = 'hidden';
   };
 

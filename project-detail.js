@@ -35,14 +35,14 @@ function setupMobileNav() {
   const closeMenu = () => {
     toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-label', 'Open menu');
-    menu.hidden = true;
+    menu.classList.remove('is-open'); // ← swap
     document.body.style.overflow = '';
   };
 
   const openMenu = () => {
     toggle.setAttribute('aria-expanded', 'true');
     toggle.setAttribute('aria-label', 'Close menu');
-    menu.hidden = false;
+    menu.classList.add('is-open'); // ← swap
     document.body.style.overflow = 'hidden';
   };
 
@@ -99,6 +99,7 @@ function setupThemeToggle() {
     applyTheme(next);
   });
 }
+
 
 function renderProjectDetail() {
   const params = new URLSearchParams(window.location.search);
@@ -199,6 +200,7 @@ function renderProjectDetail() {
   }
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
   setupYear();
   setupHeaderScroll();
@@ -206,3 +208,5 @@ document.addEventListener('DOMContentLoaded', () => {
   setupThemeToggle();
   renderProjectDetail();
 });
+
+
