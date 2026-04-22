@@ -60,7 +60,7 @@ window.PORTFOLIO_PROJECTS = [
   {
     slug: 'kibale-weather-station',
     title: 'Kibale Weather Stations',
-    tags: ['Data Collection', 'Real World Problem Solving'],
+    tags: ['Data Collection', 'Sensor Implementation'],
     image: [
       'images/IMG_1142.jpg',
       'images/IMG_1140.jpg',
@@ -70,15 +70,23 @@ window.PORTFOLIO_PROJECTS = [
     ],
     imageAlt: 'Weather Data',
     overviewParagraphs: [
-      'In Kibale National Park in Uganda, <strong>Makarere University Biological Field Station</strong> (MUBFS) houses 6 weather stations used to record <strong>air temp, soil PH, and rainfall levels.</strong> I was sent out to maintain the gateways and antennas, and make sure that all data gets sent over.',
-      'This included making sure data aggregation was working, all sensors were properly alligned/conected, and most importantly configuring the gateway with new SIM cards and antennas to guarantee all data is sent.',
+      'In Kibale National Park in Uganda, <strong>Makarere University Biological Field Station</strong> (MUBFS), in ' +
+        'collaboration with Carlton University, houses 6 weather stations using Dragino sensors to record <strong>air temp, soil PH, and ' +
+        'rainfall levels.</strong> I was sent out to maintain the Mikrotik gateways and the omnidirectional antennas, and make sure that all the sensor data is properly stored and sent.',
+      'This included configuring the sensors to properly communicate with the central MikroTik LtAP gateway, aligning antennas, replacing SIM cards, and verifying that all sensor data was being received and transmitted',
     ],
     highlights: [
-      'Data Aggregation',
-      'Field Testing',
+      'Multi-Sensor Data Consolidation',
+      'Sensor Setup and Debugging',
       'Gateway and Antenna Configuration',
     ],
-    technologies: ['MikroTik', 'Sensor Data', 'Antennas'],
+    technologies: [
+      'MikroTik',
+      'Dragino Soil PH Sensors',
+      'Dragino Rainfall Sensors',
+      'Dragino Air Temp Sensors',
+      'Omnidirectional Outdoor Antennas',
+    ],
     year: '2026',
     githubUrl: 'none',
   },
